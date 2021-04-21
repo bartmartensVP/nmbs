@@ -45,12 +45,27 @@ namespace vlapa.nmbs
         }
     }
 
+    public class CalendarDate {
+        public String service_id ;
+        public DateTime date ;
+
+        public CalendarDate( String dataString){
+            String[] parts = dataString.Split (",") ;
+            int year = int.Parse(parts[1].Substring (0,4) );
+            int month = int.Parse(parts[1].Substring (4,2) );
+            int day = int.Parse(parts[1].Substring (6,2) );
+            date = new DateTime (year,month,day) ;
+            service_id = parts[0] ;
+        }
+    }
+
     public class BaseData
     {
         public string dataPath = System.Environment.GetEnvironmentVariable("DATA_PATH");
         public string baseFile = "rawdata.zip";
         public Dictionary<String, Stop> stops = new Dictionary<string, Stop>();
         public Dictionary<String, Trip> trips = new Dictionary<string, Trip>();
+        public List<CalendarDate> calendardates = new List<CalendarDate>() ;
 
         public void loadStops(String fileName)
         {
@@ -82,6 +97,19 @@ namespace vlapa.nmbs
                 }
             }
         }
+
+        public void loadCalendarDates ( String fileName ) {
+            if ( File.Exists ( fileName)){
+                String[] lines = File.ReadAllLines ( fileName) ;
+                Boolean first = true ;
+                foreach ( String l in lines){
+                    if (!first){
+                        CalendarDate cd = new CalendarDate(l);
+                        calendardates.Add ( cd) ;
+                    }
+                }
+            }
+        }
         public BaseData()
         {
 
@@ -102,6 +130,7 @@ namespace vlapa.nmbs
             }
             loadStops(dataPath + "stops.txt");
             loadTrips(dataPath + "trips.txt");
+            loadCalendarDates(dataPath + "calendar_dates.txt") ;
         }
 
     }
