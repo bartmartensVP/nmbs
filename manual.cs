@@ -22,7 +22,16 @@ namespace vlapa.nmbs
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
             var test = System.Environment.GetEnvironmentVariable ("BMR") ;
-            response.WriteString("Welcome to Azure Functions!" + t.bart + " stops known : "  + bd.stops.Count + " trips known : " + bd.trips.Count);
+             
+            string result = "Welcome to Azure Functions!" + t.bart + " stops known : "  + bd.stops.Count + " trips known : " + bd.trips.Count + " caldates count : " + bd.calendarDates.Count + " stopTimes count : " + bd.stopTimes.Count + " stopTimesOverride count " + bd.stopTimesOverrides.Count  + "";
+            response.WriteString (result) ;
+            List<Stop> stops = bd.getStop ("Tir");
+            foreach ( Stop s in stops ){
+                 response.WriteString(s.stop_name + " " + s.stop_id + "\n") ;
+            }
+
+             bd.itemsOnBoard ("8833308") ;
+
             return response;
         }
     }
