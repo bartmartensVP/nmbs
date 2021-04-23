@@ -4,6 +4,8 @@ using System.Net;
 using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace vlapa.nmbs
 {
@@ -57,7 +59,7 @@ namespace vlapa.nmbs
             int year = int.Parse(parts[1].Substring(0, 4));
             int month = int.Parse(parts[1].Substring(4, 2));
             int day = int.Parse(parts[1].Substring(6, 2));
-            date = parts[1] ;
+            date = parts[1];
             service_id = parts[0];
         }
     }
@@ -96,12 +98,12 @@ namespace vlapa.nmbs
 
     public class BoardItem
     {
-        public String trip_id;
-        public String headsign;
-        public String route_id;
-        public String stop_id;
-        public String arrival_time;
-        public String departure_time;
+        public String trip_id { get; set; }
+        public String headsign{ get; set; }
+        public String route_id{ get; set; }
+        public String stop_id{ get; set; }
+        public String arrival_time{ get; set; }
+        public String departure_time{ get; set; }
     }
     public class BaseData
     {
@@ -187,35 +189,41 @@ namespace vlapa.nmbs
 
             String vandaag = DateTime.Now.ToString("yyyyMMdd");
 
-            List<CalendarDate> servicesVandaag = new List<CalendarDate>() ;
-            foreach ( CalendarDate cd in calendarDates){
-                if ( cd.date.Equals(vandaag)) servicesVandaag.Add ( cd) ;
+            List<CalendarDate> servicesVandaag = new List<CalendarDate>();
+            foreach (CalendarDate cd in calendarDates)
+            {
+                if (cd.date.Equals(vandaag)) servicesVandaag.Add(cd);
             }
 
-            List<StopTime> trainsFound = new List<StopTime>() ;
-            foreach ( StopTime st in stopTimes){
-                if ( st.stop_id.Equals(stop_id)) trainsFound.Add(st); 
+            List<StopTime> trainsFound = new List<StopTime>();
+            foreach (StopTime st in stopTimes)
+            {
+                if (st.stop_id.Equals(stop_id)) trainsFound.Add(st);
             }
 
-            foreach ( StopTime t in trainsFound)
+            foreach (StopTime t in trainsFound)
             {
                 Trip trip = trips[t.trip_id];
-                Boolean rijdtVandaag = false ;
-                foreach ( CalendarDate cd in servicesVandaag){
-                    if ( cd.service_id.Equals (trip.service_id)) rijdtVandaag = true ;
+                Boolean rijdtVandaag = false;
+                foreach (CalendarDate cd in servicesVandaag)
+                {
+                    if (cd.service_id.Equals(trip.service_id)) rijdtVandaag = true;
                 }
-    
-                if ( rijdtVandaag ){
-                    BoardItem item  = new BoardItem() ;
+
+                if (rijdtVandaag)
+                {
+                    BoardItem item = new BoardItem();
                     item.headsign = trip.trip_headsign;
-                    item.arrival_time = t.arrival_time ;
-                    item.departure_time = t.departure_time ;
-                    items.Add ( item) ;
+                    item.arrival_time = t.arrival_time;
+                    item.departure_time = t.departure_time;
+                    item.trip_id = t.trip_id ;
+                    items.Add(item);
                 }
 
             };
 
-            var test = "tt" ;
+            String jsonString = JsonSerializer.Serialize(items);
+            File.WriteAllText(dataPath + stop_id + ".json", jsonString);
 
         }
         public void loadStopTimeOverrides(String fileName)
@@ -252,7 +260,7 @@ namespace vlapa.nmbs
             {
                 WebClient wc = new WebClient();
                 wc.DownloadFile(@"https://sncb-opendata.hafas.de/gtfs/static/c21ac6758dd25af84cca5b707f3cb3de", fileName);
-                ZipFile.ExtractToDirectory(fileName, dataPath);
+                ZipFile.ExtractToDirectory(fileName, dataPath, true);
             }
             loadStops(dataPath + "stops.txt");
             loadTrips(dataPath + "trips.txt");
